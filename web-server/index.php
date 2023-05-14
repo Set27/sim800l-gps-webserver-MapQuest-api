@@ -1,69 +1,85 @@
 <?php
-//error: Google Maps JavaScript API error: ApiNotActivatedMapError
-//solution: click "APIs and services" Link
-//			click "Enable APIs and services" button
-//			Select "Maps JavaScript API" then click on enable
-
 require 'config.php';
 
 $sql = "SELECT * FROM tbl_gps WHERE 1";
 $result = $db->query($sql);
 if (!$result) {
-  { echo "Error: " . $sql . "<br>" . $db->error; }
+    echo "Error: " . $sql . "<br>" . $db->error;
 }
 
-$rows = $result -> fetch_all(MYSQLI_ASSOC);
-
-//print_r($row);
-
-//header('Content-Type: application/json');
-//echo json_encode($rows);
-
-
+$rows = $result->fetch_all(MYSQLI_ASSOC);
 ?>
+<!DOCTYPE html>
 <html>
 <head>
-<title>Add Markers to Show Locations in Google Maps</title>
-</head>
-<style>
-body {
-	font-family: Arial;
-}
+    <title>Author fullname. Трекер мобильного багажа</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet"> 
+    <style>
+     body { font-family: 'Roboto', sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
 
-#map-layer {
-	margin: 20px 0px;
-	max-width: 700px;
-	min-height: 400;
-}
+    h1 {
+        background-color: #3f51b5;
+        color: white;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    #mapImages img {
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #map {
+        margin: 20px 0px;
+        max-width: 700px;
+        min-height: 400px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+    }
+
+    .container {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
 </style>
-<body>
-	<h1>Add Markers to Show Locations in Google Maps</h1>
-	<div id="map-layer"></div>
+    <script src="https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.css"/>
+</head>
+<body >
+    <h1>Трекер мобильного багажа</h1>
+    <div class = "container" id="mapImages"></div>
+    <div id="map"></div>
 
-	<script
-		src="https://maps.googleapis.com/maps/api/js?key=ENTER_API_KEY&callback=initMap"
-		async defer></script>
-		
-        <script>
-      var map;
-      function initMap() {
+    <script>
+        L.mapquest.key = 'API-KEY';
         
-        var mapLayer = document.getElementById("map-layer");
-		var centerCoordinates = new google.maps.LatLng(-33.890541, 151.274857);
-		var defaultOptions = { center: centerCoordinates, zoom: 10 }
-
-		map = new google.maps.Map(mapLayer, defaultOptions);
-
-
-<?php foreach($rows as $location){ ?>
-        var location = new google.maps.LatLng(<?php echo $location['lat']; ?>, <?php echo $location['lng']; ?>);
-        var marker = new google.maps.Marker({
-            position: location,
-            map: map
+        <?php
+        $last_location = end($rows);
+        $lat = $last_location['lat'];
+        $lng = $last_location['lng'];
+        ?>
+            
+        L.mapquest.map('map', {
+          center: [<?php echo $lat; ?>, <?php echo $lng; ?>],
+          layers: L.mapquest.tileLayer('map'),
+          zoom: 18
         });
-    <?php } ?>
         
-      }
+        
+        
+        <?php foreach ($rows as $location): ?>
+            var lat = <?php echo $location['lat']; ?>;
+            var lng = <?php echo $location['lng']; ?>;
+            var imgSrc = "https://www.mapquestapi.com/staticmap/v5/map?key=API-KEY&center=" + lat + "," + lng + "&zoom=16&size=700,400@2x&type=map&locations=" + lat + "," + lng + "|marker-3f51b5-sm";
+            var img = document.createElement("img");
+            img.src = imgSrc;
+            img.alt = "Location";
+            document.getElementById("mapImages").appendChild(img);
+        <?php endforeach; ?>
     </script>
+    
 </body>
 </html>
